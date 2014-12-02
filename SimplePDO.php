@@ -3,7 +3,7 @@
 ** File:        SimplePDO.php
 ** Class:       SimplePDO
 ** Description: PHP PDO wrapper class to handle common database queries and operations 
-** Version:     1.1
+** Version:     1.2
 ** Updated:     02-Dec-2014
 ** Author:      Bennett Stone
 ** Homepage:    www.phpdevtips.com 
@@ -79,13 +79,9 @@ class SimplePDO {
             PDO::ATTR_EMULATE_PREPARES => false
         );
         $dsn = 'mysql:dbname='.$this->settings['database'].';host='.$this->settings['host'].';charset='.$this->settings['charset'];
-        
-        try {
-            $this->pdo = new PDO( $dsn, $this->settings["user"], $this->settings["password"], $options );
-            $this->link = true;
-        } catch( PDOException $e ) {
-            throw new Exception( $e->getMessage() );
-        }
+
+        $this->pdo = new PDO( $dsn, $this->settings["user"], $this->settings["password"], $options );
+        $this->link = true;
     }
     //end __construct()
     

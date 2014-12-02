@@ -41,10 +41,18 @@ $params = array(
 );
 
 //Initiate the class as a new instance
-$database = new SimplePDO( $params );
+try {
+    $database = new SimplePDO( $params );
+} catch( PDOException $e ) {
+    //Do whatever you'd like with the error here
+}
 
 //OR use the singleton...
-$database = SimplePDO::getInstance( $params );
+try {
+    $database = SimplePDO::getInstance( $params );
+} catch( PDOException $e ) {
+    //Do whatever you'd like with the error here
+}
 ```
 
 ##Available functions and usage
@@ -238,6 +246,9 @@ echo 'Total Queries: '. $database->total_queries();
 ```
 
 ###Changelog
+
+**1.2**
+* Removed internal error handling to allow user defined error handling with try/catch of any PDOException thrown
 
 **1.1**
 * Simplified initialization with removal of explicit options function
