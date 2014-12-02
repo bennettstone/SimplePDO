@@ -3,8 +3,8 @@
 ** File:        SimplePDO.php
 ** Class:       SimplePDO
 ** Description: PHP PDO wrapper class to handle common database queries and operations 
-** Version:     1.0
-** Updated:     29-Nov-2014
+** Version:     1.1
+** Updated:     02-Dec-2014
 ** Author:      Bennett Stone
 ** Homepage:    www.phpdevtips.com 
 **------------------------------------------------------------------------------
@@ -32,14 +32,12 @@
      'password' => 'root', 
      'database' => 'yourmagicdatabase'
  );
- //Set the options
- SimplePDO::set_options( $params );
 
  //Initiate the class
- $database = new SimplePDO();
+ $database = new SimplePDO( $params );
 
  //OR...
- $database = SimplePDO::getInstance();
+ $database = SimplePDO::getInstance( $params );
  
  NOTE:
  All examples provided below assume that this class has been initiated
@@ -49,8 +47,7 @@ class SimplePDO {
     
     private $pdo = null;
     private $link = null;
-    public $filter;
-    static $inst = null;
+    private static $inst = null;
     private $c_query;
     private $counter = 0;
     private $sql_constants = array(
@@ -59,7 +56,7 @@ class SimplePDO {
         'UNIX_TIMESTAMP()', 
         'NULL'
     );
-    static $settings = array(
+    private $settings = array(
         'host' => '', 
         'user' => '', 
         'password' => '', 
@@ -69,22 +66,25 @@ class SimplePDO {
     );
     
     
-    public function __construct()
+    public function __construct( $params = array() )
     {
-        $fetch_mode = ( self::$settings["results"] == 'object' ) ? PDO::FETCH_OBJ : PDO::FETCH_ASSOC;
+        //Prepare settings parameters
+        $this->set_options( $params );
+        
+        $fetch_mode = ( $this->settings["results"] == 'object' ) ? PDO::FETCH_OBJ : PDO::FETCH_ASSOC;
         $options = array(
             PDO::ATTR_DEFAULT_FETCH_MODE => $fetch_mode, 
             PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, 
-            PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES ".self::$settings["charset"], 
+            PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES ".$this->settings["charset"], 
             PDO::ATTR_EMULATE_PREPARES => false
         );
-        $dsn = 'mysql:dbname='.self::$settings["database"].';host='.self::$settings["host"].';charset='.self::$settings["charset"];
+        $dsn = 'mysql:dbname='.$this->settings['database'].';host='.$this->settings['host'].';charset='.$this->settings['charset'];
         
         try {
-            $this->pdo = new PDO( $dsn, self::$settings["user"], self::$settings["password"], $options );
+            $this->pdo = new PDO( $dsn, $this->settings["user"], $this->settings["password"], $options );
             $this->link = true;
         } catch( PDOException $e ) {
-            trigger_error( $e->getMessage() );
+            throw new Exception( $e->getMessage() );
         }
     }
     //end __construct()
@@ -204,38 +204,29 @@ class SimplePDO {
      */
     public function query( $query, $bindings = array(), $internal_call = false )
     {
-        try {
-            
-            $this->counter++;
-            $this->c_query = $this->pdo->prepare( $query );
-            if( empty( $bindings ) )
-            {
-                $this->c_query->execute();
-            }
-            else
-            {
-                $this->c_query->execute( (array)$bindings );
-            }
-            
-            //Alternate the response based on class internal vs. direct call to "query()"
-            if( $internal_call === true )
-            {
-                return $this->c_query;   
-            }
-            elseif( $this->c_query && $this->lastid() )
-            {
-                return $this->lastid(); 
-            }
-            else
-            {
-                return false;
-            }
-            
-        } catch( PDOException $e ) {
-            
-            //Handle the error with anything you like
-            trigger_error( $e->getMessage() );
-            
+        $this->counter++;
+        $this->c_query = $this->pdo->prepare( $query );
+        if( empty( $bindings ) )
+        {
+            $this->c_query->execute();
+        }
+        else
+        {
+            $this->c_query->execute( (array)$bindings );
+        }
+        
+        //Alternate the response based on class internal vs. direct call to "query()"
+        if( $internal_call === true )
+        {
+            return $this->c_query;   
+        }
+        elseif( $this->c_query && $this->lastid() )
+        {
+            return $this->lastid(); 
+        }
+        else
+        {
+            return false;
         }
     }
     //end query()
@@ -258,15 +249,7 @@ class SimplePDO {
      */
     public function get_results( $query, $bindings = array() )
     {
-        $this->c_query = $this->query( $query, $bindings, true );
-        if( $this->c_query )
-        {
-            return $this->c_query->fetchAll();   
-        }
-        else
-        {
-            return false;
-        }
+        return $this->query( $query, $bindings, true )->fetchAll();
     }
     //end get_results()
     
@@ -285,15 +268,7 @@ class SimplePDO {
      */
     public function get_row( $query, $bindings = array() )
     {
-        $this->c_query = $this->query( $query, $bindings, true );
-        if( $this->c_query )
-        {
-            return $this->c_query->fetch();   
-        }
-        else
-        {
-            return false;
-        }
+        return $this->query( $query, $bindings, true )->fetch();
     }
     //end get_row()
     
@@ -311,16 +286,7 @@ class SimplePDO {
      */
     public function num_rows( $query, $bindings = array() )
     {
-        $this->c_query = $this->query( $query, $bindings, true );
-        if( $this->c_query )
-        {
-            return $this->c_query->fetchColumn();   
-        }
-        else
-        {
-            return false;
-        }
-        
+        return $this->query( $query, $bindings, true )->fetchColumn();
     }
     //end num_rows()
     
@@ -377,14 +343,7 @@ class SimplePDO {
         $sql .= $fields .' VALUES '. $values;
         
         $this->c_query = $this->query( $sql, $vars, true );
-        if( $this->c_query )
-        {
-            return $this->lastid();   
-        }
-        else
-        {
-            return false;
-        }
+        return $this->lastid();
     }
     //end insert()
     
@@ -468,14 +427,7 @@ class SimplePDO {
         $vars = array_merge( array_values( $variables ), array_values( $where ) );
         
         $this->c_query = $this->query( $sql, $vars, true );
-        if( $this->c_query )
-        {
-            return $this->c_query->rowCount();
-        }
-        else
-        {
-            return false;
-        }
+        return $this->c_query->rowCount();
     }
     //end update()
     
@@ -529,14 +481,7 @@ class SimplePDO {
         $vars = array_values( $where );
         
         $this->c_query = $this->query( $sql, $vars, true );
-        if( $this->c_query )
-        {
-            return $this->c_query->rowCount();
-        }
-        else
-        {
-            return false;
-        }
+        return $this->c_query->rowCount();
     }
     //end delete()
     
@@ -623,14 +568,7 @@ class SimplePDO {
      public function list_fields( $table )
      {
          $this->c_query = $this->query( "DESCRIBE $table", array(), true );
-         if( $this->c_query )
-         {
-             return $this->c_query->fetchAll( PDO::FETCH_COLUMN );
-         }
-         else
-         {
-             return false;
-         }
+         return $this->c_query->fetchAll( PDO::FETCH_COLUMN );
      }
      //end list_fields()
      
@@ -743,16 +681,16 @@ class SimplePDO {
      * Singleton function
      *
      * Example usage:
-     * $database = SimplePDO::getInstance();
+     * $database = SimplePDO::getInstance( $settings );
      *
      * @access private
      * @return self
      */
-    static function getInstance()
+    public static function getInstance( $settings = array() )
     {
         if( self::$inst == null )
         {
-            self::$inst = new SimplePDO();
+            self::$inst = new SimplePDO( $settings );
         }
         return self::$inst;
     }
@@ -760,8 +698,8 @@ class SimplePDO {
     
     
     /**
-     * Static function to set database constants and carry through
-     * into the static singleton function access layer
+     * Function to set database constants and carry through
+     * into the static singleton function access layer or via construct
      *
      * $params = array(
      *    'host' => 'localhost', 
@@ -769,21 +707,20 @@ class SimplePDO {
      *    'password' => 'yourdbpassword', 
      *    'database' => 'yourdatabase'
      * );
-     * SimplePDO::set_options( $params );
      *
      * @access public
      * @param array
      * @return none
      */
-    static function set_options( $array = array() )
+    private function set_options( $array = array() )
     {
         if( !empty( $array ) )
         {
             foreach( $array as $k => $v )
             {
-                if( isset( self::$settings[$k] ) )
+                if( isset( $this->settings[$k] ) )
                 {
-                    self::$settings[$k] = $v;
+                    $this->settings[$k] = $v;
                 }
             }
         }

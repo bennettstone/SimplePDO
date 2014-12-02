@@ -22,7 +22,9 @@ $user = $db->get_row( "SELECT username FROM users WHERE user_id = ? LIMIT 1", ar
 echo $user->username;
 ```
 
-As of 29-Nov-2014, the "insert_multi()" function is **not** implemented in this class from SimpleMySQLi.
+_Limitations:_
+* As of 29-Nov-2014, the "insert_multi()" function is **not** implemented in this class from SimpleMySQLi.
+* This class has so far only been fully tested for MySQL servers; support for SQLlite and postgres forthcoming.
 
 ##Initialization
 
@@ -37,32 +39,30 @@ $params = array(
     'password' => 'root', 
     'database' => 'yourmagicdatabase'
 );
-//Set the options
-SimplePDO::set_options( $params );
 
 //Initiate the class as a new instance
-$database = new SimplePDO();
+$database = new SimplePDO( $params );
 
 //OR use the singleton...
-$database = SimplePDO::getInstance();
+$database = SimplePDO::getInstance( $params );
 ```
 
 ##Available functions and usage
 
 This class can:
 
-- Connect to a given MySQL server using PDO
-- Execute arbitrary SQL queries
-- Retrieve the number of query result rows, result columns and last inserted table identifier
-- Retrieve the query results in a single array
-- Escape a single string or an array of literal text values to use in queries
-- Determine if one value or an array of values contain common MySQL function calls
-- Check of a table exists
-- Check of a given table record exists
-- Return a query result that has just one row
-- Execute INSERT, UPDATE and DELETE queries from values that define tables, field names, field values and conditions
-- Truncate a table
-- Display the total number of queries performed during all instances of the class
+* Connect to a given MySQL server using PDO
+* Execute arbitrary SQL queries
+* Retrieve the number of query result rows, result columns and last inserted table identifier
+* Retrieve the query results in a single object
+* Escape a single string or an array of literal text values to use in queries
+* Determine if one value or an array of values contain common MySQL function calls
+* Check of a table exists
+* Check of a given table record exists
+* Return a query result that has just one row
+* Execute INSERT, UPDATE and DELETE queries from values that define tables, field names, field values and conditions
+* Truncate a table, or list of tables
+* Display the total number of queries performed during all instances of the class
 
 ###Straight query
 
@@ -236,3 +236,14 @@ $table_exists = $database->table_exists( 'nonexistent' );
 ```php
 echo 'Total Queries: '. $database->total_queries();
 ```
+
+###Changelog
+
+**1.1**
+* Simplified initialization with removal of explicit options function
+* Set visibility on all methods and properties
+* Simplified exception triggers to allow more customized handling of errors and feedback
+* Chained commands where possible within internal functions
+
+**1.0**
+* Initial Release
