@@ -3,8 +3,8 @@
 ** File:        SimplePDO.php
 ** Class:       SimplePDO
 ** Description: PHP PDO wrapper class to handle common database queries and operations 
-** Version:     1.2
-** Updated:     02-Dec-2014
+** Version:     1.2.1
+** Updated:     12-Dec-2014
 ** Author:      Bennett Stone
 ** Homepage:    www.phpdevtips.com 
 **------------------------------------------------------------------------------
@@ -402,7 +402,7 @@ class SimplePDO {
                 //If we're dealing with a "NOW()" type statement, we must pass directly and remove from bound params
                 if( in_array( $value, $this->sql_constants ) )
                 {
-                    unset( $vars[$field] );
+                    unset( $where[$field] );
                     $clauses[] = "`".$field ."` = ". $this->unquote( $value );
                 }
                 else

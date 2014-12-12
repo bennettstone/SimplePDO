@@ -247,6 +247,9 @@ echo 'Total Queries: '. $database->total_queries();
 
 ###Changelog
 
+**1.2.1**
+* Bugfix for update with WHERE clauses existing in sql_constants array
+
 **1.2**
 * Removed internal error handling to allow user defined error handling with try/catch of any PDOException thrown
 
