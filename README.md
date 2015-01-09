@@ -247,6 +247,9 @@ echo 'Total Queries: '. $database->total_queries();
 
 ###Changelog
 
+**1.2.1.1**
+* Added composer.json
+
 **1.2.1**
 * Bugfix for update with WHERE clauses existing in sql_constants array
 

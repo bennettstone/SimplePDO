@@ -1,0 +1,14 @@
+{
+    "name": "simplepdo/simplepdo",
+    "type": "library",
+    "description": "PHP PDO class designed to use prepared queries while providing support for existing implementations using SimpleMySQLi.",
+    "authors": [
+        {
+            "name": "Bennett Stone",
+            "homepage": "http://phpdevtips.com"
+        }
+    ],
+    "require": {
+        "php": ">=5.1.0"
+    }
+}
