@@ -247,6 +247,9 @@ echo 'Total Queries: '. $database->total_queries();
 
 ###Changelog
 
+**1.2.1.2**
+* Updated composer.json
+
 **1.2.1.1**
 * Added composer.json
 

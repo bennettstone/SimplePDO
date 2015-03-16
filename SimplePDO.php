@@ -3,7 +3,7 @@
 ** File:        SimplePDO.php
 ** Class:       SimplePDO
 ** Description: PHP PDO wrapper class to handle common database queries and operations 
-** Version:     1.2.1
+** Version:     1.2.1.2
 ** Updated:     12-Dec-2014
 ** Author:      Bennett Stone
 ** Homepage:    www.phpdevtips.com 
