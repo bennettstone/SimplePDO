@@ -3,12 +3,12 @@
 ** File:        SimplePDO.php
 ** Class:       SimplePDO
 ** Description: PHP PDO wrapper class to handle common database queries and operations 
-** Version:     1.2.1.2
-** Updated:     12-Dec-2014
+** Version:     1.3
+** Updated:     09-Sep-2017
 ** Author:      Bennett Stone
 ** Homepage:    www.phpdevtips.com 
 **------------------------------------------------------------------------------
-** COPYRIGHT (c) 2014 - 2015 BENNETT STONE
+** COPYRIGHT (c) 2014 - 2017 BENNETT STONE
 **
 ** The source code included in this package is free software; you can
 ** redistribute it and/or modify it under the terms of the GNU General Public
@@ -342,6 +342,97 @@ class SimplePDO {
         return $this->lastid();
     }
     //end insert()
+
+
+    /**
+     * Insert multiple records in a single statement
+     * Example usage:
+     *
+     * //Column names
+     * $columns = array(
+     *      'column_one',
+     *      'column_two',
+     * );
+     *
+     * //Nested arrays for each row to be inserted
+     * $insert = array(
+     *      array(
+     *          'column 1 row 1 value',
+     *          'column 2 row 1 value',
+     *      ),
+     *      array(
+     *          'column 1 row 2 value',
+     *          'column 2 row 2 value',
+     *      ),
+     *      array(
+     *          'column 1 row 3 value',
+     *          'column 2 row 3 value',
+     *      ),
+     * );
+     *
+     * $added = $database->insertMulti( 'my_table', $columns, $insert );
+     *
+     *
+     * @param $table
+     * @param array $columns
+     * @param array $records
+     * @param bool|false $return_skips
+     * @return array|bool|int
+     */
+    public function insertMulti( $table, array $columns, array $records, $return_skips = false )
+    {
+        if( empty( $columns ) || empty( $records ) )
+        {
+            return false;
+        }
+
+        $values = array();
+        $params = array();
+        $skips = array();
+        $map_count = count( $columns );
+        foreach( $records as $key => $value )
+        {
+            //If for some reason we have a different number of records here than in the columns, carry on
+            if( count( $value ) != $map_count )
+            {
+                $skips[] = $value;
+                continue;
+            }
+
+            $row = array();
+            foreach( $value as $k => $v )
+            {
+                if( in_array( $v, $this->sql_constants ) )
+                {
+                    unset( $value[$k] );
+                    $row[] = $this->unquote( $v );
+                }
+                else
+                {
+                    $row[] = '?';
+                    $params[] = $v;
+                }
+            }
+            $values[] = '('. implode( ', ', $row ) .')';
+        }
+
+        $fields = ' (`' . implode( '`, `', $columns ) . '`)';
+
+        $sql = "INSERT INTO `". $table ."`";
+        $sql .= $fields ." VALUES ";
+        $sql .= implode( ', ', $values );
+
+        $this->c_query = $this->query( $sql, $params, true );
+        if( $return_skips === true )
+        {
+            return array(
+                'inserted' => count( $values ),
+                'skipped' => $skips,
+            );
+        }
+
+        return count( $values );
+    }
     
     
     /**

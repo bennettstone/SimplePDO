@@ -2,6 +2,7 @@
     "name": "simplepdo/simplepdo",
     "type": "library",
     "description": "PHP PDO class designed to use prepared queries while providing support for existing implementations using SimpleMySQLi.",
+    "keywords": "PDO, MySQL, database",
     "authors": [
         {
             "name": "Bennett Stone",

@@ -157,6 +157,40 @@ $insert = $database->insert( 'your_db_table', $userdata );
 echo 'Last user ID '. $insert;
 ```
 
+###Insert multiple records
+
+```php
+//The columns to insert records into
+$columns = array(
+    'column_one', 
+    'column_two', 
+);
+
+//An array of nested records to insert
+$insert = array(
+    array(
+        'column 1 row 1 value',
+        'column 2 row 1 value',
+    ),
+    array(
+        'column 1 row 2 value',
+        'column 2 row 2 value',
+    ),
+    array(
+        'column 1 row 3 value',
+        'column 2 row 3 value',
+    ), 
+    array(
+        'column 1 row 4 value', 
+        'column 2 row 4 value', 
+        'this maps to nothing, and this entire row will be skipped', 
+    ), 
+);
+
+//Returns the number of records inserted
+$added = $database->insertMulti( 'your_db_table', $columns, $insert );
+```
+
 ###Update record(s)
 
 ```php
@@ -246,6 +280,9 @@ echo 'Total Queries: '. $database->total_queries();
 ```
 
 ###Changelog
+
+**1.3**
+* Added insertMulti() method to insert multiple records with single statement
 
 **1.2.1.2**
 * Updated composer.json
